@@ -40,12 +40,13 @@ while counter < 100 :
             continue
 
         song_name = x["item"]["name"]
+        song_url = x["item"]["external_urls"]["spotify"]
         artist_name = x["item"]["artists"][0]["name"]
         string = artist_name + " - " + song_name
         
-        if songs[string] < 2 :
+        if songs[string] < 1 :
             print(string)
-            api.update_status('Barkın is currently listening "' + string + '"' )
+            api.update_status('Barkın is currently listening to "' + string + '"' + " " + song_url)
             songs[string] += 1
 
     elif response.status_code == 204 and previous_response != 204:

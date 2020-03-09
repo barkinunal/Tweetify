@@ -2,12 +2,20 @@ import requests
 import spotify_token as st
 import sys
 from time import sleep
-#import tweepy
+from collections import defaultdict
+import tweepy
 
 counter = 0
 previous_response = -1
 song_name = ""
 artist_name = ""
+
+auth = tweepy.OAuthHandler(sys.argv[3], sys.argv[4])
+auth.set_access_token(sys.argv[5], sys.argv[6])
+
+api = tweepy.API(auth)
+
+songs = defaultdict(int)
 
 while counter < 100 :
 
@@ -33,7 +41,12 @@ while counter < 100 :
 
         song_name = x["item"]["name"]
         artist_name = x["item"]["artists"][0]["name"]
-        print(artist_name + " - " + song_name)
+        string = artist_name + " - " + song_name
+        
+        if songs[string] < 2 :
+            print(string)
+            api.update_status('Barkın is currently listening "' + string + '"' )
+            songs[string] += 1
 
     elif response.status_code == 204 and previous_response != 204:
         print("Not playing at the moment")

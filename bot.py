@@ -57,6 +57,3 @@ while counter < 100 :
     previous_response = response.status_code
     sleep(60)
 
-
-
-

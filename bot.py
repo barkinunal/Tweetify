@@ -4,7 +4,6 @@ Last Update : 31/03/2020
 """
 
 import requests
-import sys
 from time import sleep
 from collections import defaultdict
 import tweepy
@@ -20,8 +19,8 @@ def init() :
 
         for line in db_songs :
             #print("Previous songs in the database : ")
-            print(line)
-            songs[line[:-1]] += 1
+            #print(line)
+            songs[line.strip()] += 1
 
         db.close()
 
@@ -32,17 +31,29 @@ def init() :
 
 def runner(db, songs) :
 
-    auth = tweepy.OAuthHandler(sys.argv[3], sys.argv[4])
-    auth.set_access_token(sys.argv[5], sys.argv[6])
+    config = open("config.txt", "r")
+    config_lines = config.readlines()
+
+    username = config_lines[0].strip()
+    password = config_lines[1].strip()
+    consumer_key = config_lines[2].strip()
+    consumer_secret = config_lines[3].strip()
+    access_token = config_lines[4].strip()
+    access_secret = config_lines[5].strip()
+    name = config_lines[6].strip()
+    
+
+    auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
+    auth.set_access_token(access_token, access_secret)
 
     api = tweepy.API(auth)
 
-    data = st.start_session(sys.argv[1], sys.argv[2])
+    data = st.start_session(username, password)
     token = data[0]
     expiration_date = data[1]
 
-    print("Token : " + token, end="\n\n")
-    print("Expiration Date : {}".format(expiration_date), end="\n\n")
+    #print("Token : " + token, end="\n\n")
+    #print("Expiration Date : {}".format(expiration_date), end="\n\n")
     
     counter = 0
     previous_response = -1
@@ -75,12 +86,12 @@ def runner(db, songs) :
             artist_name = x["item"]["artists"][0]["name"]
             string = artist_name + " - " + song_name
 
-            #print(string)
+            print(string)
             
             if songs[string] < 1 :
                 try :
                     songs[string] += 1
-                    api.update_status(sys.argv[7] + ' is currently listening to "' + string + '"' + " " + song_url)
+                    api.update_status(name + ' is currently listening to "' + string + '"' + " " + song_url)
                     db.write(string + '\n')
                 except :
                     print("You have tweeted it before.")
@@ -91,7 +102,7 @@ def runner(db, songs) :
             print("Not playing at the moment")
             sleep(60)
         elif response.status_code == 401 :        
-            data = st.start_session(sys.argv[1], sys.argv[2])
+            data = st.start_session(username, password)
             token = data[0]
             expiration_date = data[1]
             sleep(60)

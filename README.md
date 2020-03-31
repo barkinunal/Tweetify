@@ -15,8 +15,18 @@ In order to use this bot, you must have  **Spotify developer account**  and  **T
 -   tweepy
 -   spotify-token
 
+### Create a file called _"config.txt"_ and put these informations one by one at each a lines.
+
+	SPOTIFY_USERNAME 
+	SPOTIFY_PASSWORD 
+	TWITTER_CONSUMER_API_KEY
+	TWITTER_CONSUMER_API_SECRET
+	TWITTER_ACCESS_TOKEN
+	TWITTER_ACCESS_TOKEN_SECRET
+	YOUR_NAME
+
 ### Finally, you can run the script as follows :
  
 
-	python3 bot.py SPOTIFY_USERNAME SPOTIFY_PASSWORD TWITTER_CONSUMER_API_KEY TWITTER_CONSUMER_API_SECRET TWITTER_ACCESS_TOKEN TWITTER_ACCESS_TOKEN_SECRET YOUR_NAME
+	python3 bot.py
 

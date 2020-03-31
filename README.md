@@ -30,4 +30,4 @@ In order to use this bot, you must have  **Spotify developer account**  and  **T
 
 	python3 bot.py
 
-### While running the script, bot will create a file named _"db.txt"_. It keeps what you played before. Do not delete it.
+#### While running the script, bot will create a file named _"db.txt"_. It keeps what you played before. Do not delete it.

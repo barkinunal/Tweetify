@@ -1,60 +1,108 @@
+"""
+Author : Barkın Ünal
+Last Update : 31/03/2020
+"""
+
 import requests
-import spotify_token as st
 import sys
 from time import sleep
 from collections import defaultdict
 import tweepy
+import spotify_token as st
 
-counter = 0
-previous_response = -1
-song_name = ""
-artist_name = ""
+def init() :
+    # Check db and add it into defaultdict songs
+    songs = defaultdict(int)
 
-auth = tweepy.OAuthHandler(sys.argv[3], sys.argv[4])
-auth.set_access_token(sys.argv[5], sys.argv[6])
+    try :
+        db = open("db.txt", "r")
+        db_songs = db.readlines()
 
-api = tweepy.API(auth)
+        for line in db_songs :
+            #print("Previous songs in the database : ")
+            #print(line)
+            songs[line] += 1
 
-songs = defaultdict(int)
+        db.close()
 
-while counter < 100 :
+    except IOError:
+        print("Database not found. It will be created.")
+
+    return songs
+
+def runner(db, songs) :
+
+    auth = tweepy.OAuthHandler(sys.argv[3], sys.argv[4])
+    auth.set_access_token(sys.argv[5], sys.argv[6])
+
+    api = tweepy.API(auth)
 
     data = st.start_session(sys.argv[1], sys.argv[2])
+    token = data[0]
+    expiration_date = data[1]
 
-    headers = {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + data[0],
-    }
+    print("Token : " + token, end="\n\n")
+    print("Expiration Date : {}".format(expiration_date), end="\n\n")
+    
+    counter = 0
+    previous_response = -1
+    song_name = ""
+    artist_name = ""
 
-    params = (
-        ('market', 'ES'),
-    )
+    while counter < 100 :
+        headers = {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token,
+        }
 
-    response = requests.get('https://api.spotify.com/v1/me/player/currently-playing', headers=headers, params=params)
+        params = (
+            ('market', 'ES'),
+        )
 
-    if response.status_code == 200 :
-        x = response.json()
-
-        if (song_name == x["item"]["name"] and artist_name == x["item"]["artists"][0]["name"]) :
-            continue
-
-        song_name = x["item"]["name"]
-        song_url = x["item"]["external_urls"]["spotify"]
-        artist_name = x["item"]["artists"][0]["name"]
-        string = artist_name + " - " + song_name
+        response = requests.get('https://api.spotify.com/v1/me/player/currently-playing', headers=headers, params=params)
         
-        if songs[string] < 1 :
-            print(string)
-            api.update_status('Barkın is currently listening to "' + string + '"' + " " + song_url)
-            songs[string] += 1
+        if response.status_code == 200 :
+            x = response.json()
 
-    elif response.status_code == 204 and previous_response != 204:
-        print("Not playing at the moment")
-    elif response.status_code == 401 :
-        print("Auth Error")
+            # Format artist - song string
+            print(x["item"]["name"] + " - " + x["item"]["artists"][0]["name"])
 
-    counter += 1
-    previous_response = response.status_code
-    sleep(60)
+            # Check if there is still the same song playing
+            if (artist_name == x["item"]["artists"][0]["name"] and song_name == x["item"]["name"]) :
+                continue
 
+            song_name = x["item"]["name"]
+            song_url = x["item"]["external_urls"]["spotify"]
+            artist_name = x["item"]["artists"][0]["name"]
+            string = artist_name + " - " + song_name
+            
+            if songs[string] < 1 :
+                try :
+                    songs[string] += 1
+                    api.update_status('Barkın is currently listening to "' + string + '"' + " " + song_url)
+                    db.write(string)
+                except :
+                    print("You have tweeted it before.")
+                    continue
+
+        elif response.status_code == 204 and previous_response != 204:
+            print("Not playing at the moment")
+        elif response.status_code == 401 :        
+            data = st.start_session(sys.argv[1], sys.argv[2])
+            token = data[0]
+            expiration_date = data[1]
+            
+
+        counter += 1
+        previous_response = response.status_code
+        sleep(60)
+
+if __name__ == "__main__":
+    songs = init()
+    try :
+        db = open("db.txt", "w")
+        runner(db, songs)
+    except KeyboardInterrupt:
+        db.close()
+        print("  Bye!")

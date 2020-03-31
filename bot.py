@@ -20,8 +20,8 @@ def init() :
 
         for line in db_songs :
             #print("Previous songs in the database : ")
-            #print(line)
-            songs[line] += 1
+            print(line)
+            songs[line[:-1]] += 1
 
         db.close()
 
@@ -49,6 +49,7 @@ def runner(db, songs) :
     song_name = ""
     artist_name = ""
 
+
     while counter < 100 :
         headers = {
             'Accept': 'application/json',
@@ -65,9 +66,6 @@ def runner(db, songs) :
         if response.status_code == 200 :
             x = response.json()
 
-            # Format artist - song string
-            print(x["item"]["name"] + " - " + x["item"]["artists"][0]["name"])
-
             # Check if there is still the same song playing
             if (artist_name == x["item"]["artists"][0]["name"] and song_name == x["item"]["name"]) :
                 continue
@@ -76,22 +74,27 @@ def runner(db, songs) :
             song_url = x["item"]["external_urls"]["spotify"]
             artist_name = x["item"]["artists"][0]["name"]
             string = artist_name + " - " + song_name
+
+            #print(string)
             
             if songs[string] < 1 :
                 try :
                     songs[string] += 1
-                    api.update_status('Barkın is currently listening to "' + string + '"' + " " + song_url)
-                    db.write(string)
+                    api.update_status(sys.argv[7] + ' is currently listening to "' + string + '"' + " " + song_url)
+                    db.write(string + '\n')
                 except :
                     print("You have tweeted it before.")
+                    sleep(60)
                     continue
 
         elif response.status_code == 204 and previous_response != 204:
             print("Not playing at the moment")
+            sleep(60)
         elif response.status_code == 401 :        
             data = st.start_session(sys.argv[1], sys.argv[2])
             token = data[0]
             expiration_date = data[1]
+            sleep(60)
             
 
         counter += 1
@@ -101,7 +104,7 @@ def runner(db, songs) :
 if __name__ == "__main__":
     songs = init()
     try :
-        db = open("db.txt", "w")
+        db = open("db.txt", "a")
         runner(db, songs)
     except KeyboardInterrupt:
         db.close()

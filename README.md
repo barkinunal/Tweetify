@@ -1,4 +1,4 @@
-# Spotify Now Playing Bot
+# Tweetify - Tweet your currently playing songs on Spotify.
 
 This script gets your currently listening song and tweets it to your account.
 
